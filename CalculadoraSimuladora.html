@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calculadora y Simuladora MCU & MCUV</title>
+<style>
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin:0; padding:0; background: #121212; color: #EEE;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+  }
+  h1 {
+    margin: 1rem 0;
+    color: #68D391;
+    text-shadow: 0 0 6px #68D391aa;
+  }
+  .container {
+    max-width: 900px;
+    width: 100%;
+    background: #222;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px #0008;
+  }
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+    margin-top: 4px;
+  }
+  button {
+    margin-top: 1rem;
+    background: #48BB78;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #121212;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #38A169;
+  }
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 15px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 700;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+  .tab.active {
+    border-color: #68D391;
+    color: #68D391;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .results {
+    margin-top: 1rem;
+    background: #333;
+    padding: 1rem;
+    border-radius: 8px;
+    min-height: 100px;
+    font-size: 1.1rem;
+  }
+  canvas {
+    display: block;
+    margin: 1rem auto 0;
+    background: #222;
+    border: 2px solid #68D391;
+    border-radius: 12px;
+  }
+  img {
+    display: block;
+    margin: 1rem auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #68D391aa;
+  }
+</style>
+</head>
+<body>
+  <h1>Calculadora y Simuladora MCU & MCUV</h1>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="mcu">Movimiento Circular Uniforme (MCU)</div>
+      <div class="tab" data-tab="mcuv">Movimiento Circular Uniformemente Variado (MCUV)</div>
+    </div>
+
+    <!-- MCU Tab content -->
+    <div id="mcu" class="tab-content active">
+      <img src="MCU.jpg" alt="Imagen MCU" />
+      <div>
+        <label for="mcu-frecuencia">Frecuencia (Hz):</label>
+        <input type="number" id="mcu-frecuencia" min="0" step="any" placeholder="Ej: 0.5" />
+      </div>
+      <div>
+        <label for="mcu-velangular">Velocidad Angular (rad/s):</label>
+        <input type="number" id="mcu-velangular" min="0" step="any" placeholder="Ej: 3.14" />
+      </div>
+      <div>
+        <label for="mcu-angulo">Ángulo (rad):</label>
+        <input type="number" id="mcu-angulo" min="0" step="any" placeholder="Ej: 6.28" />
+      </div>
+      <div>
+        <label for="mcu-tiempo">Tiempo (s):</label>
+        <input type="number" id="mcu-tiempo" min="0" step="any" placeholder="Ej: 2" />
+      </div>
+      <button id="mcu-calcular">Calcular y Simular MCU</button>
+      <div class="results" id="mcu-resultados"></div>
+      <canvas id="mcu-canvas" width="400" height="400"></canvas>
+    </div>
+
+    <!-- MCUV Tab content -->
+    <div id="mcuv" class="tab-content">
+      <img src="MCUV.jpg" alt="Imagen MCUV" />
+      <div>
+        <label for="mcuv-aceleracion-angular">Aceleración Angular (rad/s²):</label>
+        <input type="number" id="mcuv-aceleracion-angular" step="any" placeholder="Ej: 0.5" />
+      </div>
+      <div>
+        <label for="mcuv-velangular-inicial">Velocidad Angular Inicial (rad/s):</label>
+        <input type="number" id="mcuv-velangular-inicial" step="any" placeholder="Ej: 0" />
+      </div>
+      <div>
+        <label for="mcuv-angulo">Ángulo (rad):</label>
+        <input type="number" id="mcuv-angulo" step="any" placeholder="Ej: 6.28" />
+      </div>
+      <div>
+        <label for="mcuv-tiempo">Tiempo (s):</label>
+        <input type="number" id="mcuv-tiempo" min="0" step="any" placeholder="Ej: 4" />
+      </div>
+      <button id="mcuv-calcular">Calcular y Simular MCUV</button>
+      <div class="results" id="mcuv-resultados"></div>
+      <canvas id="mcuv-canvas" width="400" height="400"></canvas>
+    </div>
+  </div>
+
+<script>
+  // Tabs switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  let mcuAnimationFrameId = null;
+  let mcuvAnimationFrameId = null;
+
+  // MCU calculations and simulation
+  const mcuFrecuenciaInput = document.getElementById('mcu-frecuencia');
+  const mcuVelAngularInput = document.getElementById('mcu-velangular');
+  const mcuAnguloInput = document.getElementById('mcu-angulo');
+  const mcuTiempoInput = document.getElementById('mcu-tiempo');
+  const mcuCalcularBtn = document.getElementById('mcu-calcular');
+  const mcuResultadosDiv = document.getElementById('mcu-resultados');
+  const mcuCanvas = document.getElementById('mcu-canvas');
+  const mcuCtx = mcuCanvas.getContext('2d');
+
+  mcuCalcularBtn.addEventListener('click', () => {
+    let f = parseFloat(mcuFrecuenciaInput.value);
+    let w = parseFloat(mcuVelAngularInput.value);
+    let theta = parseFloat(mcuAnguloInput.value);
+    let t = parseFloat(mcuTiempoInput.value);
+
+    let missing = [];
+    if (isNaN(f)) missing.push('Frecuencia (f)');
+    if (isNaN(w)) missing.push('Velocidad Angular (ω)');
+    if (isNaN(theta)) missing.push('Ángulo (θ)');
+    if (isNaN(t)) missing.push('Tiempo (t)');
+
+    if (missing.length > 1) {
+      mcuResultadosDiv.innerHTML = `<strong>Por favor ingrese al menos tres valores para calcular el cuarto.</strong>`;
+      return;
+    }
+
+    if (missing.length === 1) {
+      let result = '';
+      let formula = '';
+
+      if (missing[0] === 'Frecuencia (f)') {
+        if (t === 0) {
+          mcuResultadosDiv.innerHTML = '<strong>Tiempo (t) no puede ser cero para este cálculo.</strong>';
+          return;
+        }
+        f = theta / (2 * Math.PI * t);
+        result = `Frecuencia (f): ${f.toFixed(3)} Hz`;
+        formula = 'f = θ / (2 * π * t)';
+      } else if (missing[0] === 'Velocidad Angular (ω)') {
+        if (t === 0) {
+          mcuResultadosDiv.innerHTML = '<strong>Tiempo (t) no puede ser cero para este cálculo.</strong>';
+          return;
+        }
+        w = theta / t;
+        result = `Velocidad Angular (ω): ${w.toFixed(3)} rad/s`;
+        formula = 'ω = θ / t';
+      } else if (missing[0] === 'Ángulo (θ)') {
+        theta = w * t;
+        result = `Ángulo (θ): ${theta.toFixed(3)} rad`;
+        formula = 'θ = ω * t';
+      } else if (missing[0] === 'Tiempo (t)') {
+        if (w === 0) {
+          mcuResultadosDiv.innerHTML = '<strong>Velocidad Angular (ω) no puede ser cero para este cálculo.</strong>';
+          return;
+        }
+        t = theta / w;
+        result = `Tiempo (t): ${t.toFixed(3)} s`;
+        formula = 't = θ / ω';
+      }
+
+      mcuResultadosDiv.innerHTML = `
+        <strong>Incógnita:</strong> ${result}<br/>
+        <strong>Fórmula utilizada:</strong> ${formula}
+      `;
+      return;
+    }
+
+    const turns = theta / (2 * Math.PI);
+
+    let resultadoHTML = `
+      <strong>Resultados:</strong><br/>
+      Frecuencia (f): ${f.toFixed(3)} Hz<br/>
+      Velocidad Angular (ω): ${w.toFixed(3)} rad/s<br/>
+      Ángulo (θ): ${theta.toFixed(3)} rad<br/>
+      Tiempo (t): ${t.toFixed(3)} s<br/>
+      Número de vueltas: ${turns.toFixed(3)}
+    `;
+    mcuResultadosDiv.innerHTML = resultadoHTML;
+
+    animateMCU(w);
+  });
+
+  function animateMCU(w) {
+    let t0 = null;
+    const cx = mcuCanvas.width / 2;
+    const cy = mcuCanvas.height / 2;
+    const radius = Math.min(cx, cy) - 40;
+
+    cancelAnimationFrame(mcuAnimationFrameId);
+
+    function drawFanBlade(ctx, x, y, angle, length, width, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(length, width / 2);
+      ctx.lineTo(length, -width / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function step(timestamp) {
+      if (!t0) t0 = timestamp;
+      const elapsed = (timestamp - t0) / 1000;
+
+      const angle = (w * elapsed) % (2 * Math.PI);
+
+      mcuCtx.clearRect(0, 0, mcuCanvas.width, mcuCanvas.height);
+
+      mcuCtx.fillStyle = '#A0F0B8';
+      mcuCtx.beginPath();
+      mcuCtx.arc(cx, cy, 10, 0, 2 * Math.PI);
+      mcuCtx.fill();
+
+      const numBlades = 3;
+      const bladeLength = radius;
+      const bladeWidth = 30;
+      for (let i = 0; i < numBlades; i++) {
+        const bladeAngle = angle + i * (2 * Math.PI / numBlades);
+        drawFanBlade(mcuCtx, cx, cy, bladeAngle, bladeLength, bladeWidth, '#38A169');
+      }
+
+      mcuAnimationFrameId = requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // MCUV calculations and simulation
+  const mcuvAceleracionInput = document.getElementById('mcuv-aceleracion-angular');
+  const mcuvVelIniInput = document.getElementById('mcuv-velangular-inicial');
+  const mcuvAnguloInput = document.getElementById('mcuv-angulo');
+  const mcuvTiempoInput = document.getElementById('mcuv-tiempo');
+  const mcuvCalcularBtn = document.getElementById('mcuv-calcular');
+  const mcuvResultadosDiv = document.getElementById('mcuv-resultados');
+  const mcuvCanvas = document.getElementById('mcuv-canvas');
+  const mcuvCtx = mcuvCanvas.getContext('2d');
+
+  mcuvCalcularBtn.addEventListener('click', () => {
+    let alpha = parseFloat(mcuvAceleracionInput.value);
+    let w0 = parseFloat(mcuvVelIniInput.value);
+    let theta = parseFloat(mcuvAnguloInput.value);
+    let t = parseFloat(mcuvTiempoInput.value);
+
+    let missing = [];
+    if (isNaN(alpha)) missing.push('Aceleración Angular (α)');
+    if (isNaN(w0)) missing.push('Velocidad Angular Inicial (ω₀)');
+    if (isNaN(theta)) missing.push('Ángulo (θ)');
+    if (isNaN(t)) missing.push('Tiempo (t)');
+
+    if (missing.length > 1) {
+      mcuvResultadosDiv.innerHTML = `<strong>Por favor ingrese al menos tres valores para calcular el cuarto.</strong>`;
+      return;
+    }
+
+    if (missing.length === 1) {
+      let result = '';
+      let formula = '';
+
+      if (missing[0] === 'Aceleración Angular (α)') {
+        if (t === 0) {
+          mcuvResultadosDiv.innerHTML = '<strong>Tiempo (t) no puede ser cero para este cálculo.</strong>';
+          return;
+        }
+        alpha = (theta - w0 * t) / (0.5 * t * t);
+        result = `Aceleración Angular (α): ${alpha.toFixed(3)} rad/s²`;
+        formula = 'α = (θ - ω₀ * t) / (0.5 * t²)';
+      } else if (missing[0] === 'Velocidad Angular Inicial (ω₀)') {
+        if (t === 0) {
+          mcuvResultadosDiv.innerHTML = '<strong>Tiempo (t) no puede ser cero para este cálculo.</strong>';
+          return;
+        }
+        w0 = (theta - 0.5 * alpha * t * t) / t;
+        result = `Velocidad Angular Inicial (ω₀): ${w0.toFixed(3)} rad/s`;
+        formula = 'ω₀ = (θ - 0.5 * α * t²) / t';
+      } else if (missing[0] === 'Ángulo (θ)') {
+        theta = w0 * t + 0.5 * alpha * t * t;
+        result = `Ángulo (θ): ${theta.toFixed(3)} rad`;
+        formula = 'θ = ω₀ * t + 0.5 * α * t²';
+      } else if (missing[0] === 'Tiempo (t)') {
+        if (alpha === 0) {
+          mcuvResultadosDiv.innerHTML = '<strong>No se puede calcular tiempo (t) cuando α es 0.</strong>';
+          return;
+        }
+        const a = 0.5 * alpha;
+        const b = w0;
+        const c = -theta;
+        const discriminant = b*b - 4*a*c;
+        if (discriminant < 0) {
+          mcuvResultadosDiv.innerHTML = '<strong>No hay solución real para el tiempo (t) con los valores dados.</strong>';
+          return;
+        }
+        const t1 = (-b + Math.sqrt(discriminant)) / (2*a);
+        const t2 = (-b - Math.sqrt(discriminant)) / (2*a);
+        t = (t1 > 0) ? t1 : (t2 > 0) ? t2 : null;
+        if (t === null) {
+          mcuvResultadosDiv.innerHTML = '<strong>No hay valor válido para tiempo (t) positivo.</strong>';
+          return;
+        }
+        result = `Tiempo (t): ${t.toFixed(3)} s`;
+        formula = '0.5 * α * t² + ω₀ * t - θ = 0 (ecuación cuadrática)';
+      }
+
+      mcuvResultadosDiv.innerHTML = `
+        <strong>Incógnita:</strong> ${result}<br/>
+        <strong>Fórmula utilizada:</strong> ${formula}
+      `;
+      return;
+    }
+
+    const turns = theta / (2 * Math.PI);
+
+    let resultadoHTML = `
+      <strong>Resultados:</strong><br/>
+      Aceleración Angular (α): ${alpha.toFixed(3)} rad/s²<br/>
+      Velocidad Angular Inicial (ω₀): ${w0.toFixed(3)} rad/s<br/>
+      Ángulo (θ): ${theta.toFixed(3)} rad<br/>
+      Tiempo (t): ${t.toFixed(3)} s<br/>
+      Número de vueltas: ${turns.toFixed(3)}
+    `;
+    mcuvResultadosDiv.innerHTML = resultadoHTML;
+
+    animateMCUV(w0, alpha, t);
+  });
+
+  // Animación estilo rueda de bici para MCUV
+  function animateMCUV(w0, alpha, totalTime) {
+    let startTime = null;
+    const cx = mcuvCanvas.width / 2;
+    const cy = mcuvCanvas.height / 2;
+    const radius = Math.min(cx, cy) - 40;
+    const wheelColor = '#48BB78';
+    const spokeColor = '#A0F0B8';
+    const spokeCount = 20;
+
+    cancelAnimationFrame(mcuvAnimationFrameId);
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      const t = Math.min(elapsed, totalTime);
+
+      const angle = w0 * t + 0.5 * alpha * t * t;
+
+      if (elapsed > totalTime + 2) {
+        cancelAnimationFrame(mcuvAnimationFrameId);
+        return;
+      }
+
+      mcuvCtx.clearRect(0, 0, mcuvCanvas.width, mcuvCanvas.height);
+
+      // Neumático exterior
+      mcuvCtx.strokeStyle = wheelColor;
+      mcuvCtx.lineWidth = 14;
+      mcuvCtx.beginPath();
+      mcuvCtx.arc(cx, cy, radius, 0, 2 * Math.PI);
+      mcuvCtx.stroke();
+
+      // Cubo central
+      mcuvCtx.fillStyle = spokeColor;
+      mcuvCtx.beginPath();
+      mcuvCtx.arc(cx, cy, radius * 0.15, 0, 2 * Math.PI);
+      mcuvCtx.fill();
+
+      // Radios
+      mcuvCtx.strokeStyle = spokeColor;
+      mcuvCtx.lineWidth = 3;
+      for (let i = 0; i < spokeCount; i++) {
+        const spokeAngle = angle + i * (2 * Math.PI / spokeCount);
+        const xOuter = cx + radius * Math.cos(spokeAngle);
+        const yOuter = cy + radius * Math.sin(spokeAngle);
+        const xInner = cx + radius * 0.15 * Math.cos(spokeAngle);
+        const yInner = cy + radius * 0.15 * Math.sin(spokeAngle);
+        mcuvCtx.beginPath();
+        mcuvCtx.moveTo(xInner, yInner);
+        mcuvCtx.lineTo(xOuter, yOuter);
+        mcuvCtx.stroke();
+      }
+
+      mcuvAnimationFrameId = requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+  }
+</script>
+</body>
+</html>
+
