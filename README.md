@@ -35,7 +35,11 @@ Objetivos del proyecto:
 
 Créditos:
 
-- Aleandro Angulo, Daniel Zabala
+- Aleandro Angulo
+- Daniel Zabala
+- Adrian Almanza
+- Bradmatt Morales
+- Axel Lopez
 - Facultad de Ingenieria y Ciencias de la Computacion y Telecomunicaciones
 
 ¿Quieres contribuir?
