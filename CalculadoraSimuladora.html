@@ -112,7 +112,7 @@
       <div class="tab" data-tab="mcuv">Movimiento Circular Uniformemente Variado (MCUV)</div>
     </div>
 
-    <!-- MCU Tab content -->
+    <!-- Contenido de MCU Tab -->
     <div id="mcu" class="tab-content active">
       <img src="MCU.jpg" alt="Imagen MCU" />
       <div>
@@ -136,9 +136,9 @@
       <canvas id="mcu-canvas" width="400" height="400"></canvas>
     </div>
 
-    <!-- MCUV Tab content -->
+    <!-- Contenido de la pestaña MCUV -->
     <div id="mcuv" class="tab-content">
-      <img src="MCUV.jpg" alt="Imagen MCUV" />
+      <img src="MCUV.png" alt="Imagen MCUV" />
       <div>
         <label for="mcuv-aceleracion-angular">Aceleración Angular (rad/s²):</label>
         <input type="number" id="mcuv-aceleracion-angular" step="any" placeholder="Ej: 0.5" />
@@ -162,7 +162,7 @@
   </div>
 
 <script>
-  // Tabs switching
+  // conmutación de pestañas
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -175,7 +175,7 @@
   let mcuAnimationFrameId = null;
   let mcuvAnimationFrameId = null;
 
-  // MCU calculations and simulation
+  // Cálculos y simulación de MCU
   const mcuFrecuenciaInput = document.getElementById('mcu-frecuencia');
   const mcuVelAngularInput = document.getElementById('mcu-velangular');
   const mcuAnguloInput = document.getElementById('mcu-angulo');
@@ -306,7 +306,7 @@
     requestAnimationFrame(step);
   }
 
-  // MCUV calculations and simulation
+  // Cálculos y simulación MCUV
   const mcuvAceleracionInput = document.getElementById('mcuv-aceleracion-angular');
   const mcuvVelIniInput = document.getElementById('mcuv-velangular-inicial');
   const mcuvAnguloInput = document.getElementById('mcuv-angulo');
